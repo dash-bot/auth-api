@@ -4,7 +4,8 @@ Considered the authorization authority for our banking app.
 """
 from flask import Flask
 
-app = Flask(__name__)
+app = Flask(__main__)
+application = app
 
 
 @app.route('/login/speech', methods=['POST'])
