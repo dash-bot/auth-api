@@ -3,9 +3,11 @@ REST API for distributing and validating crypto-tickets for authorized users.
 Considered the authorization authority for our banking app.
 """
 from flask import Flask
+from flask_sslify import SSLify
 
 app = Flask(__name__)
 application = app
+sslify = SSLify(app)
 
 
 @app.route('/login/speech', methods=['POST'])
@@ -70,6 +72,7 @@ def check_ticket():
         }
     """
     return "Not implemented"
+
 
 if __name__ == "__main__":
     app.run()
