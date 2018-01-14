@@ -19,7 +19,7 @@ CREATE TABLE data_users (
 );
 
 CREATE TABLE data_tickets (
-  ticket_val_hash INT,
+  ticket_val_hash TEXT,
   issued TIMESTAMP,
   expiry TIMESTAMP
 );
