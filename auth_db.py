@@ -11,6 +11,25 @@ class AuthDBConnection(object):
         self._conn = psycopg2.connect("dbname=%s user=%s password=%s host=%s" %
                                       (DB_NAME, DB_UNAME, DB_PASSWORD, DB_URL))
 
+    def check_login_text(self, email, password):
+        """
+        Validate a traditional username/password login.
+        :param email: Email string.
+        :param password: Password string.
+        :return: True/false validity of login.
+        """
+        password_hash = hashlib.sha256(password.encode('ascii')).digest()
+
+        cur = self._conn.cursor()
+        cur.execute("SELECT * FROM data_users WHERE email=%s AND pwd_hash=%s",
+                    (email, password_hash))
+
+        if cur.fetchone():
+            # login success
+            return True
+        else:
+            return False
+
     def check_ticket(self, ticket):
         """
         Check whether or not a ticket is valid (not expired and issued by this server).

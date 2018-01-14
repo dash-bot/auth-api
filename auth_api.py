@@ -3,11 +3,11 @@ REST API for distributing and validating crypto-tickets for authorized users.
 Considered the authorization authority for our banking app.
 """
 import auth_db
+import os
 from flask import Flask, g, jsonify, abort, request
 from flask_sslify import SSLify
 from speech_verification import VerificationServiceHttpClientHelper
 from werkzeug.utils import secure_filename
-import os
 
 suscription_key = "4a8368646beb44e29eeafd5f86ec86c9"
 speech_verification = VerificationServiceHttpClientHelper.VerificationServiceHttpClientHelper(suscription_key)
@@ -138,21 +138,31 @@ def text_login():
             "issued" : ISO 8601 datetime,
             "expires" : ISO 8601 datetime,
             "authenticated" : true/false,
-            "error" : None or message if error
         }
     """
 
-    # TODO: validate credentials
+    try:
+        email = request.json['email']
+        password = request.json['password']
+    except KeyError:
+        abort(400)
 
-    # valid login - issue ticket
-    ticket, issued, expiry = get_db().issue_ticket()
-    return jsonify({
-        "ticket": ticket,
-        "issued": issued,
-        "expiry": expiry,
-        "authenticated": True,
-        "error": None
-    })
+    if get_db().check_login_text(email, password):
+        # valid login - issue ticket
+        ticket, issued, expiry = get_db().issue_ticket()
+        return jsonify({
+            "ticket": ticket,
+            "issued": issued,
+            "expiry": expiry,
+            "authenticated": True
+        })
+    else:
+        return jsonify({
+            "ticket": None,
+            "issued": None,
+            "expiry": None,
+            "authenticated": False
+        })
 
 
 @app.route("/auth/check", methods=['GET'])
