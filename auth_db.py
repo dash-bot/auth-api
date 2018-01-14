@@ -1,5 +1,4 @@
 import os
-import base64
 import hashlib
 import psycopg2
 from datetime import datetime, timedelta
@@ -11,6 +10,23 @@ class AuthDBConnection(object):
     def __init__(self):
         self._conn = psycopg2.connect("dbname=%s user=%s password=%s host=%s" %
                                       (DB_NAME, DB_UNAME, DB_PASSWORD, DB_URL))
+
+    def check_ticket(self, ticket):
+        """
+        Check whether or not a ticket is valid (not expired and issued by this server).
+        :param ticket: Ticket bytes.
+        :return True/false validity of the ticket.
+        """
+        ticket_hash = hashlib.sha256(ticket).digest()
+
+        cur = self._conn.cursor()
+        cur.execute("SELECT * FROM data_tickets WHERE ticket_val_hash=%s AND expiry>now();",
+                    (psycopg2.Binary(ticket_hash),))
+
+        if cur.fetchone():
+            return True
+        else:
+            return False
 
     def issue_ticket(self):
         # generate 1024 random bits
@@ -24,10 +40,10 @@ class AuthDBConnection(object):
         # log hash of ticket (SHA256), issued time, expiry time
         cur = self._conn.cursor()
         cur.execute("INSERT INTO data_tickets VALUES (%s, %s, %s);",
-                    (base64.b64encode(ticket_hash), issued_time, expiry_time))
+                    (ticket_hash, issued_time, expiry_time))
         self._conn.commit()
 
-        return base64.b64encode(ticket).decode(), issued_time, expiry_time
+        return ticket.hex(), issued_time, expiry_time
 
     def close(self):
         self._conn.close()

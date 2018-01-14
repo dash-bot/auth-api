@@ -3,9 +3,8 @@ REST API for distributing and validating crypto-tickets for authorized users.
 Considered the authorization authority for our banking app.
 """
 import auth_db
-from flask import Flask, g, jsonify
+from flask import Flask, g, jsonify, abort, request
 from flask_sslify import SSLify
-from flask import Flask, request, jsonify
 from speech_verification import VerificationServiceHttpClientHelper
 from werkzeug.utils import secure_filename
 import os
@@ -162,15 +161,22 @@ def check_ticket():
     Checks that a provided ticket exists in the database and has not expired.
 
     Request:
-        ticket: Base64
+        ticket: Hex string
 
     Response:
         {
             "authenticated" : True/False
-            "error" : None of message if error
         }
     """
-    return "Not implemented"
+    try:
+        ticket = bytes.fromhex(request.args.get("ticket"))
+    except ValueError:
+        abort(400)
+
+    authenticated = get_db().check_ticket(ticket)
+    return jsonify({
+        "authenticated": authenticated
+    })
 
 
 if __name__ == "__main__":
