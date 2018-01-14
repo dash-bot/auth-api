@@ -117,7 +117,8 @@ def speech_login():
         }
     """
     profile_name = {
-        "c3cba575-213b-48d4-82a4-9fd6d5c06366" : "Shae"
+        "c3cba575-213b-48d4-82a4-9fd6d5c06366" : "Shae",
+        "459d1f28-37d4-4138-ba8f-b82347f00169" : "Charlie"
     }
 
     if request.method == 'POST':
