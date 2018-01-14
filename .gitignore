@@ -1,0 +1,8 @@
+# MacOS Files
+.DS_Store
+
+# IntelliJ files
+.idea
+
+# Virtualenv
+venv/
