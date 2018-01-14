@@ -71,4 +71,5 @@ def check_ticket():
     """
     return "Not implemented"
 
-app.run()
+if __name__ == "__main__":
+    app.run()
