@@ -170,7 +170,7 @@ def check_ticket():
     """
     try:
         ticket = bytes.fromhex(request.args.get("ticket"))
-    except ValueError:
+    except (ValueError, TypeError):
         abort(400)
 
     authenticated = get_db().check_ticket(ticket)
