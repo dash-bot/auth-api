@@ -1,8 +1,8 @@
+import os
 import base64
+import hashlib
 import psycopg2
 from datetime import datetime, timedelta
-from Crypto import Random
-from Crypto.Hash import SHA256
 from settings import DB_NAME, DB_URL, DB_UNAME, DB_PASSWORD, TICKET_EXP_TIME
 
 
@@ -14,11 +14,8 @@ class AuthDBConnection(object):
 
     def issue_ticket(self):
         # generate 1024 random bits
-        ticket = Random.get_random_bytes(128)
-
-        ticket_sha256 = SHA256.new()
-        ticket_sha256.update(ticket)
-        ticket_hash = ticket_sha256.digest()
+        ticket = os.urandom(128)
+        ticket_hash = hashlib.sha256(ticket).digest()
 
         # determine issue and expiry time
         issued_time = datetime.utcnow()
@@ -30,7 +27,7 @@ class AuthDBConnection(object):
                     (base64.b64encode(ticket_hash), issued_time, expiry_time))
         self._conn.commit()
 
-        return base64.b64encode(ticket)
+        return base64.b64encode(ticket).decode(), issued_time, expiry_time
 
     def close(self):
         self._conn.close()

@@ -2,12 +2,29 @@
 REST API for distributing and validating crypto-tickets for authorized users.
 Considered the authorization authority for our banking app.
 """
-from flask import Flask
+import auth_db
+from flask import Flask, g, jsonify
 from flask_sslify import SSLify
 
 app = Flask(__name__)
 application = app
 sslify = SSLify(app)
+
+
+@app.before_first_request
+def get_db():
+    db = getattr(g, "_dbconn", None)
+    if not db:
+        db = g._dbconn = auth_db.AuthDBConnection()
+    return db
+
+
+@app.teardown_appcontext
+def shutdown_db(exception):
+    print("Shutting down database!")
+    db = getattr(g, "_dbconn", None)
+    if db:
+        db.close()
 
 
 @app.route('/login/speech', methods=['POST'])
@@ -33,7 +50,18 @@ def speech_login():
             "error" : None or message if error
         }
     """
-    return "Not implemented"
+
+    # TODO: validate input credentials
+
+    # valid login - issue ticket
+    ticket, issued, expiry = get_db().issue_ticket()
+    return jsonify({
+        "ticket": ticket,
+        "issued": issued,
+        "expiry": expiry,
+        "authenticated": True,
+        "error": None
+    })
 
 
 @app.route("/login/text", methods=['POST'])
@@ -54,7 +82,18 @@ def text_login():
             "error" : None or message if error
         }
     """
-    return "Not implemented"
+
+    # TODO: validate credentials
+
+    # valid login - issue ticket
+    ticket, issued, expiry = get_db().issue_ticket()
+    return jsonify({
+        "ticket": ticket,
+        "issued": issued,
+        "expiry": expiry,
+        "authenticated": True,
+        "error": None
+    })
 
 
 @app.route("/auth/check", methods=['GET'])
