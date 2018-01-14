@@ -6,8 +6,14 @@
 
 # Virtualenv
 venv/
+.venv/
+
+__pycache__
+uploads
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+
+#
