@@ -9,7 +9,7 @@ venv/
 .venv/
 
 __pycache__
-uploads
+uploads/*
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
