@@ -68,6 +68,7 @@ class IdentificationServiceHttpClientHelper:
         Arguments:
         subscription_key -- the subscription key string
         """
+        print(subscription_key)
         self._subscription_key = subscription_key
 
     def get_all_profiles(self):
@@ -351,7 +352,7 @@ class IdentificationServiceHttpClientHelper:
                        self._SUBSCRIPTION_KEY_HEADER: self._subscription_key}
 
             # Start the connection
-            with closing(http.client.HTTPConnection(base_url)) as conn:
+            with closing(http.client.HTTPSConnection(base_url)) as conn:
                 # Send the request
                 conn.request(method, request_url, body, headers)
                 res = conn.getresponse()

@@ -21,7 +21,7 @@ sslify = SSLify(app)
 def get_client():
     i = getattr(g, "_identification", None)
     if not i:
-        i = g._identification = IdentificationServiceHttpClientHelper.IdentificationServiceHttpClientHelper("4a8368646beb44e29eeafd5f86ec86c9")
+        i = g._identification = IdentificationServiceHttpClientHelper.IdentificationServiceHttpClientHelper(r'4a8368646beb44e29eeafd5f86ec86c9')
     return i
 
 @app.before_first_request
@@ -89,9 +89,8 @@ def speech_enroll():
         success, response = get_wav_file(request)
         if not success:
             return response
-        enroll = get_client().enroll_profile(id, response)
-        print(enroll.get_remaining_enrollments())
-        return str(enroll.get_remaining_enrollments())
+        enroll = get_client().enroll_profile(id, response, force_short_audio=True)
+        return str(enroll.get_remaining_speech_time())
 
 
 @app.route('/login/speech', methods=['POST'])
@@ -118,7 +117,7 @@ def speech_login():
         }
     """
     profile_name = {
-        "Shae" : ""
+        "c3cba575-213b-48d4-82a4-9fd6d5c06366" : "Shae"
     }
 
     if request.method == 'POST':
@@ -127,9 +126,9 @@ def speech_login():
         if not success:
             return response
         all_profiles = [profile.get_profile_id()
-               for profile in client.get_all_profiles() if profile.get_enrollment_status == "Enrolled"]
-        result = client.identify_file(response, all_profiles)
-        return jsonify(id=client[result.get_identified_profile_id()], confidence=result.get_confidence())
+               for profile in client.get_all_profiles() if profile.get_enrollment_status() == "Enrolled"]
+        result = client.identify_file(response, all_profiles, force_short_audio=True)
+        return jsonify(id=profile_name[result.get_identified_profile_id()], confidence=result.get_confidence())
 
 
 @app.route("/login/text", methods=['POST'])
