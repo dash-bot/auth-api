@@ -6,11 +6,9 @@ import auth_db
 import os
 from flask import Flask, g, jsonify, abort, request
 from flask_sslify import SSLify
-from speech_verification import VerificationServiceHttpClientHelper
+from speech_identification import IdentificationServiceHttpClientHelper
 from werkzeug.utils import secure_filename
 
-suscription_key = "4a8368646beb44e29eeafd5f86ec86c9"
-speech_verification = VerificationServiceHttpClientHelper.VerificationServiceHttpClientHelper(suscription_key)
 UPLOAD_FOLDER = './uploads'
 ALLOWED_EXTENSIONS = {'wav'}
 
@@ -19,6 +17,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 application = app
 sslify = SSLify(app)
 
+@app.before_first_request
+def get_client():
+    i = getattr(g, "_identification", None)
+    if not i:
+        i = g._identification = IdentificationServiceHttpClientHelper.IdentificationServiceHttpClientHelper("4a8368646beb44e29eeafd5f86ec86c9")
+    return i
 
 @app.before_first_request
 def get_db():
@@ -66,9 +70,10 @@ def speech_create():
     Create a new speech profile
     :return:
     """
-    response = speech_verification.create_profile("en-us")
+    client = get_client()
+    response = client.create_profile("en-us")
     id = response.get_profile_id()
-    # TODO do stuff with id, we are only returning for testing
+    # TODO do stuff with id, we are only returning for testing and manual enrollments
     return id
 
 
@@ -84,7 +89,7 @@ def speech_enroll():
         success, response = get_wav_file(request)
         if not success:
             return response
-        enroll = speech_verification.enroll_profile(id, response)
+        enroll = get_client().enroll_profile(id, response)
         print(enroll.get_remaining_enrollments())
         return str(enroll.get_remaining_enrollments())
 
@@ -112,15 +117,19 @@ def speech_login():
             "error" : None or message if error
         }
     """
+    profile_name = {
+        "Shae" : ""
+    }
 
-    # TODO retrieve id from database instead of getting it from request
-    id = request.args.get("id")
     if request.method == 'POST':
+        client = get_client()
         success, response = get_wav_file(request)
         if not success:
             return response
-        verify = speech_verification.verify_file(response, id)
-        return jsonify(result=verify.get_result(), confidence=verify.get_confidence())
+        all_profiles = [profile.get_profile_id()
+               for profile in client.get_all_profiles() if profile.get_enrollment_status == "Enrolled"]
+        result = client.identify_file(response, all_profiles)
+        return jsonify(id=client[result.get_identified_profile_id()], confidence=result.get_confidence())
 
 
 @app.route("/login/text", methods=['POST'])
