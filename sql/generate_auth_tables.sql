@@ -14,12 +14,12 @@ CREATE TABLE data_users (
   last_name TEXT,
   created_date DATE,
   email TEXT,
-  pwd_hash TEXT,
-  speech_profile_hash TEXT
+  pwd_hash BYTEA,
+  speech_profile_hash BYTEA
 );
 
 CREATE TABLE data_tickets (
-  ticket_val_hash TEXT,
+  ticket_val_hash BYTEA,
   issued TIMESTAMP,
   expiry TIMESTAMP
 );
